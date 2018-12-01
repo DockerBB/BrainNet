@@ -1,0 +1,28 @@
+spring:
+  resources:
+    static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${filesys.dir}
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://www.aknifezndx.top:3306/brainsci?characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 187dezhu
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  devtools:
+    remote:
+      secret: myscret
+  session:
+    store-type: none
+    timeout: 72h
+#修改端口不用添加依赖
+server:
+  port: 8001
+
+filesys:
+  dir: ./src/main/resources/static
+  gretna-output: ./src/main/resources/static/gretna
+  path-matlab: D:/Program Files/MATLAB/R2016b/bin/matlab.exe
+
