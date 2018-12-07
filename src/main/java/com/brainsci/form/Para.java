@@ -13,6 +13,7 @@ public class Para {
 //    public ModulAlgor modulAlgor;
 //    public Boolean DDPcFlag;
 //    public String cIndex;
+    private String realNetURI;
 
     public Integer getSignType() {
         return signType.ordinal() + 1;
@@ -60,6 +61,14 @@ public class Para {
 
     public void setToDoList(List<String> toDoList) {
         this.toDoList = toDoList;
+    }
+
+    public String getRealNetURI() {
+        return realNetURI;
+    }
+
+    public void setRealNetURI(String realNetURI) {
+        this.realNetURI = realNetURI;
     }
 }
 enum SignType {

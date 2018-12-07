@@ -1,0 +1,26 @@
+spring:
+  resources:
+#    static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${filesys.dir}
+    static-locations: file:${filesys.frontend},file:${filesys.dir}
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/brainsci?characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 187dezhu
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  devtools:
+    remote:
+      secret: myscret
+  session:
+    store-type: none
+    timeout: 72h
+
+filesys:
+  frontend: ./frontend
+  dir: ./dist
+  path-matlab: /usr/local/MATLAB/R2018b/bin/matlab
+
