@@ -15,13 +15,20 @@ public class MailService {
     @Value("${mail.fromMail.addr}")
     private String from;
 
+    /**
+     * @author zeng
+     * @param to 收件人
+     * @param subject 主题
+     * @param verifyCode 验证码
+     */
     public void sendMail(String to, String subject, String verifyCode) {
         //创建邮件正文
-        String emailContent = "";
+        String emailContent = "您的验证码为"+verifyCode;
         //将模块引擎内容解析成html字符串
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
         message.setTo(to);
+        // 主题
         message.setSubject(subject);
         message.setText(emailContent);
         try {
