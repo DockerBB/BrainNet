@@ -1,6 +1,8 @@
 package com.brainsci.websocket.controller;
 
-import com.brainsci.websocket.server.SocketServer;
+import com.brainsci.security.util.GsonPlus;
+import com.brainsci.websocket.form.WebSocketMessageForm;
+import com.brainsci.websocket.server.WebSocketServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,18 +19,17 @@ import java.util.List;
 @Controller
 public class WebSocketController {
     @Autowired
-    private SocketServer socketServer;
+    private WebSocketServer webSocketServer;
 
     @RequestMapping(value = "/index")
-    public String idnex() {
-
+    public String index() {
         return "index";
     }
 
     @RequestMapping(value = "/admin")
     public String admin(Model model) {
-        int num = socketServer.getOnlineNum();
-        String str = socketServer.getOnlineUsers();
+        int num = webSocketServer.getOnlineNum();
+        String str = webSocketServer.getOnlineUsers();
         List<String> list = null;
         if (str.length() > 2) {
             str = str.substring(0,str.length()-1);
@@ -46,13 +47,13 @@ public class WebSocketController {
      * 个人信息推送
      * @return
      */
-    @RequestMapping("sendmsg")
+    @RequestMapping("/sendmsg")
     @ResponseBody
     public String sendmsg(String msg, String username){
         //第一个参数 :msg 发送的信息内容
         //第二个参数为用户长连接传的用户人数
         String [] persons = username.split(",");
-        SocketServer.SendMany(msg,persons);
+        WebSocketServer.SendMany(msg,persons);
         return "success";
     }
 
@@ -60,10 +61,10 @@ public class WebSocketController {
      * 推送给所有在线用户
      * @return
      */
-    @RequestMapping("sendAll")
+    @RequestMapping("/sendAll")
     @ResponseBody
     public String sendAll(String msg){
-        SocketServer.sendAll(msg);
+        WebSocketServer.sendAll(GsonPlus.GSON.toJson(new WebSocketMessageForm("SysMessage", msg)));
         return "success";
     }
 
@@ -71,12 +72,12 @@ public class WebSocketController {
      * 获取当前在线用户
      * @return
      */
-    @RequestMapping("webstatus")
+    @RequestMapping("/webstatus")
     public String webstatus(){
         //当前用户个数
-        int count = SocketServer.getOnlineNum();
+        int count = WebSocketServer.getOnlineNum();
         //当前用户的username
-        SocketServer.getOnlineUsers();
+        WebSocketServer.getOnlineUsers();
         return "tongji";
     }
 }

@@ -1,6 +1,4 @@
 spring:
-  resources:
-    static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${filesys.dir}
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://www.aknifezndx.top:3306/brainsci?characterEncoding=utf-8&useSSL=false
@@ -22,6 +20,6 @@ server:
   port: 8001
 
 filesys:
-  dir: ../dist
+  dir: ../dist/
   path-matlab: D:/Program Files/MATLAB/R2016b/bin/matlab.exe
-
+  path-python3: D:/Python37/python.exe

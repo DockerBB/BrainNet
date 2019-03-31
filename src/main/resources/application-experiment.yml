@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/brainsci?characterEncoding=utf-8&useSSL=false
+    username: root
+    password: mysql1234
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  devtools:
+    remote:
+      secret: myscret
+  session:
+    store-type: none
+    timeout: 72h
+
+filesys:
+  # filesys.dir以/结尾,不然SecurityConfig无法添加此资源
+  dir: ./dist/
+  path-matlab: /usr/bin/matlab
+  path-python: /usr/bin/python
+
+
+

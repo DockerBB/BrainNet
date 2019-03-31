@@ -2,6 +2,8 @@ package com.brainsci.utils;
 
 import com.brainsci.form.Para;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,8 +11,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+@Component
 public class GretnaUtils {
     public static File matlabApplication;
+    private static GretnaUtils gretnaUtils = new GretnaUtils();
+    public static GretnaUtils getGretnaUtils(){
+        return gretnaUtils;
+    }
     /**
      * @param SType         - The type of matrix sign
                                 1: Positive
@@ -25,7 +32,7 @@ public class GretnaUtils {
                                 2: Weighted
      * @param RandNum       - The number of random network
      */
-    public static void genNetwork(File path, File realNetFile, int SType, int TType, List<Double> Thres, int NType, int RandNum){
+    public void genNetwork(File path, File realNetFile, int SType, int TType, List<Double> Thres, int NType, int RandNum){
         String initialCommand =
                 "cd '" + path.getAbsolutePath() + "';"+
                 String.format("gretna_RUN_ThresMat(load('" + realNetFile.getAbsolutePath() + "'),'./temp/RealNet.mat',%d,%d,%s,%d);", SType, TType, Thres.toString(), NType) +
@@ -56,7 +63,8 @@ public class GretnaUtils {
                                 2: Barrat et al., 2009
      * @param AUCInterval   - The interval to estimate AUC, 0 if just one threshold
      */
-    public static void smallWorld(File path, int NType, int ClustAlgor, double AUCInterval){
+    @Async
+    public void smallWorld(File path, int NType, int ClustAlgor, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_SmallWorld('./temp/RealNet.mat','./temp/RandNet.mat','./temp/SW.mat',%d,%d,%f)", NType,  ClustAlgor,  AUCInterval);
         String[] cmd = {
@@ -66,12 +74,15 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+            Thread.sleep(100*1000);
+            System.out.println("small world");
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void globalEfficiency(File path, int NType, double AUCInterval){
+    @Async
+    public void globalEfficiency(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+
                         String.format("gretna_RUN_GEfficiency('./temp/RealNet.mat','./temp/RandNet.mat', './temp/EFF.mat', %d, %f)", NType, AUCInterval);
@@ -82,12 +93,15 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+            Thread.sleep(100*1000);
+            System.out.println("global efficiency");
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void richClub(File path, int NType){
+    @Async
+    public void richClub(File path, int NType){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_RichClub('./temp/RealNet.mat','./temp/RandNet.mat', './temp/RC.mat', %d)", NType);
         String[] cmd = {
@@ -97,12 +111,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void assortativity(File path, int NType, double AUCInterval){
+    @Async
+    public void assortativity(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_Assortativity('./temp/RealNet.mat','./temp/RandNet.mat','./temp/ASS.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -112,12 +127,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void synchronization(File path, int NType, double AUCInterval){
+    @Async
+    public void synchronization(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_Synchronization('./temp/RealNet.mat','./temp/RandNet.mat','./temp/SYN.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -127,12 +143,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void hierarchy(File path, int NType, double AUCInterval){
+    @Async
+    public void hierarchy(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_Hierarchy('./temp/RealNet.mat','./temp/RandNet.mat','./temp/HIE.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -142,12 +159,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void shortestPathLength(File path, int NType, double AUCInterval){
+    @Async
+    public void shortestPathLength(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_NodalShortestPath('./temp/RealNet.mat', './temp/NLP.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -157,12 +175,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void nodalEfficiency(File path, int NType, double AUCInterval){
+    @Async
+    public void nodalEfficiency(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_NodalEfficiency('./temp/RealNet.mat', './temp/NE.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -172,12 +191,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void localEfficiency(File path, int NType, double AUCInterval){
+    @Async
+    public void localEfficiency(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_NodalLocalEfficiency('./temp/RealNet.mat', './temp/NLE.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -187,12 +207,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void degreeCentrality(File path, int NType, double AUCInterval){
+    @Async
+    public void degreeCentrality(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_DegreeCentrality('./temp/RealNet.mat', './temp/DC.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -202,12 +223,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void betweennessCentrality(File path, int NType, double AUCInterval){
+    @Async
+    public void betweennessCentrality(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_BetweennessCentrality('./temp/RealNet.mat', './temp/BC.mat',%d,%f)", NType,  AUCInterval);
         String[] cmd = {
@@ -217,12 +239,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void communityIndex(File path, int NType, double AUCInterval){
+    @Async
+    public void communityIndex(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_CommunityIndex('./temp/RealNet.mat', './temp/CI.mat', opt.NType, opt.MType, opt.DDPcInd)", NType,  AUCInterval);
         String[] cmd = {
@@ -232,12 +255,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void participantCoefficient(File path, int NType, double AUCInterval){
+    @Async
+    public void participantCoefficient(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_ParticipantCoefficient('./temp/RealNet.mat', './temp/PC.mat', opt.CIndex)", NType,  AUCInterval);
         String[] cmd = {
@@ -247,12 +271,13 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
-    public static void interaction(File path, int NType, double AUCInterval){
+    
+    public void interaction(File path, int NType, double AUCInterval){
         String matlabCommand =
                 "cd '" + path.getAbsolutePath() + "';"+ String.format("gretna_RUN_ModularInteraction('./temp/RealNet.mat', './temp/MI.mat', opt.NType, opt.CIndex)", NType,  AUCInterval);
         String[] cmd = {
@@ -262,9 +287,9 @@ public class GretnaUtils {
                 "-nosplash",
                 "-r", matlabCommand + ";exit"};
         try{
-            Runtime.getRuntime().exec(cmd);
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+            Runtime.getRuntime().exec(cmd).waitFor();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 }

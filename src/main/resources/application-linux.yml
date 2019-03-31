@@ -1,7 +1,4 @@
 spring:
-  resources:
-#    static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${filesys.dir}
-    static-locations: file:${filesys.frontend},file:${filesys.dir}
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/brainsci?characterEncoding=utf-8&useSSL=false
@@ -20,7 +17,8 @@ spring:
     timeout: 72h
 
 filesys:
-  frontend: ./frontend
-  dir: ./dist
+  # filesys.dir以/结尾,不然SecurityConfig无法添加此资源
+  dir: ./dist/
   path-matlab: /usr/local/MATLAB/R2018b/bin/matlab
+
 

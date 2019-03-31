@@ -20,12 +20,7 @@ public class RemoteAddrUtils {
             ip = request.getRemoteAddr();
         }
         if (ip.equals("0:0:0:0:0:0:0:1")) {
-            try {
-                ip = new String("本地".getBytes("GBK"),"UTF-8");//直接使用有中文乱码问题
-            }catch (UnsupportedEncodingException use){
-                use.printStackTrace();
-            }
-
+            ip = "本地";
         }
         return ip;
     }

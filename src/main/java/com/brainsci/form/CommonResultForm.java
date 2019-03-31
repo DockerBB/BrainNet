@@ -22,6 +22,9 @@ public class CommonResultForm {
     public static CommonResultForm of204(String message){
         return new CommonResultForm(0, message);
     }
+    public static CommonResultForm of400(String message) {
+        return new CommonResultForm(400, message);
+    }
 
     public Integer getStatus() {
         return status;
