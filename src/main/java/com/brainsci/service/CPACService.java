@@ -2,6 +2,7 @@ package com.brainsci.service;
 
 import com.brainsci.form.NetAnalysisOption;
 import com.brainsci.security.util.GsonPlus;
+import com.brainsci.utils.FileHandleUtils;
 import com.brainsci.utils.MatlabUtils;
 import com.brainsci.utils.ZipUtils;
 import com.brainsci.websocket.form.WebSocketMessageForm;
@@ -24,33 +25,13 @@ public class CPACService {
     public CPACService(@Value("${filesys.dir}") String filedir) {
         this.filedir = filedir;
     }
-    private void deleteFold(File dirFile) {
-        // 如果dir对应的文件不存在，则退出
-        if (!dirFile.exists()) {
-            return;
-        }
-        Stack<File> stack = new Stack<>();
-        stack.push(dirFile);
-        while (!stack.isEmpty()){
-            dirFile = stack.pop();
-            if (dirFile.isFile()) {
-                dirFile.delete();
-            } else if (!dirFile.delete()){
-                stack.push(dirFile);
-                for (File file : dirFile.listFiles()) {
-                    stack.push(file);
-                }
-            }
-        }
-        dirFile.delete();
-    }
     @Async
     public void cpac(String userHomeDir, String task, String token, String paraJson){
         File path = new File(filedir + userHomeDir + "/cpac/"+task);
         File cpacpub = new File(filedir+"./public/cpac/");
         File working = new File(filedir + userHomeDir + "/cpac/"+task+"/working");
         File zipTag = new File(working.getAbsolutePath() + ".zip");
-        if (working.exists())deleteFold(working);// 判断文件夹是否存在，如果存在就删除
+        if (working.exists())FileHandleUtils.deleteFold(working);// 判断文件夹是否存在，如果存在就删除
         zipTag.delete();// 删除原有压缩文件
         paraJson = paraJson.replaceAll("/public/cpac",cpacpub.getAbsolutePath().replaceAll("/./","/"));
         System.out.println(paraJson);

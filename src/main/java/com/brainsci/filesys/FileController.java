@@ -5,6 +5,7 @@ import com.brainsci.form.CommonResultForm;
 import com.brainsci.security.repository.UserBaseRepository;
 import com.brainsci.utils.FileHandleUtils;
 import com.brainsci.utils.RemoteAddrUtils;
+import com.brainsci.utils.ZipUtils;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 public class FileController {
@@ -70,7 +72,7 @@ public class FileController {
                 }});
             }
         }
-        return CommonResultForm.of200("sucess", usrlicList );
+        return CommonResultForm.of200("success", usrlicList );
     }
     @DeleteMapping(value = "/MyFile/**")
     public CommonResultForm singleFileDelete(HttpServletRequest request, HttpSession httpSession) throws IOException{
@@ -78,7 +80,12 @@ public class FileController {
         uri = URLDecoder.decode(uri, "UTF-8");
         String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
         File tag = new File(env.getProperty("filesys.dir") + userHomeDir + "/" + uri);
-        if (tag.delete()) return CommonResultForm.of204("delete success");
+        if (tag.exists()) {
+            if (tag.isDirectory()) {
+                FileHandleUtils.deleteFold(tag);
+                if (!tag.exists()) return CommonResultForm.of204("delete success");
+            } else if (tag.isFile() && tag.delete()) return CommonResultForm.of204("delete success");
+        }
         return CommonResultForm.of400("delete fail");
     }
     @GetMapping(value = "/MyFile/**")
@@ -88,24 +95,31 @@ public class FileController {
         String username = (String) httpSession.getAttribute("username");
         String fileDir = env.getProperty("filesys.dir");
         String userHomeDir = userBaseRepository.getOne(username).getHomeDirectory();
-        File file = new File(fileDir + userHomeDir + "/" + uri);
-        String fileName = uri.substring(uri.lastIndexOf('/')+1);
+        File file = new File(fileDir + (userHomeDir + "/" + uri).replaceAll("\\./",""));
+        System.out.println(file.getAbsolutePath());
         if (!file.exists()) {
             response.sendError(402);
             return;
         }
+        String fileName = uri.substring(uri.lastIndexOf('/')+1);
+        if (file.isDirectory()) fileName = fileName + ".zip";
         response.setContentType("application/octet-stream");
         response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);
         FileInputStream fis = null;
         ServletOutputStream sos = null;
         try {
-            fis = new FileInputStream(file);
             sos = response.getOutputStream();
-            byte[] buffer = new byte[10485760];// 一次读取10M
-            int i = fis.read(buffer);
-            while (i != -1) {
-                sos.write(buffer, 0, i);
-                i = fis.read(buffer);
+            if (file.isDirectory()){
+                ZipUtils.toZip(file.getAbsolutePath(),sos, true);
+            }else {
+                fis = new FileInputStream(file);
+                response.addHeader("Content-Length", String.valueOf(fis.available()));
+                byte[] buffer = new byte[1048576];// 一次读取1M
+                int i = fis.read(buffer);
+                while (i != -1) {
+                    sos.write(buffer, 0, i);
+                    i = fis.read(buffer);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,7 +140,7 @@ public class FileController {
             }
         }
     }
-    @PostMapping(value = "/MyFile")
+    @PostMapping(value = "/deleteFile")
     public CommonResultForm multiFileDelete(@RequestBody ArrayList<String> deletefiles,HttpServletRequest request, HttpSession httpSession) throws IOException{
         String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
         if (deletefiles == null) return CommonResultForm.of400("delete fail");
@@ -137,6 +151,45 @@ public class FileController {
             else res.add(uri+".log -delete fail");
         }
         return CommonResultForm.of200("delete fail", res);
+    }
+    @PostMapping(value = "/MyFile")
+    public CommonResultForm postForDownload(@RequestBody ArrayList<String> files,HttpServletResponse response, HttpSession httpSession) throws IOException{
+        String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
+        String fileDir = env.getProperty("filesys.dir");
+        List<File> tag = new ArrayList<>();
+        for(String uri : files){
+            tag.add(new File(fileDir + (userHomeDir + uri).replaceAll("\\./","")));
+        }
+        httpSession.setAttribute("downloadOption",tag);
+        httpSession.setAttribute("downloadTagPath",files);
+        return CommonResultForm.of204("success");
+    }
+    @GetMapping(value = "/downloadzip")
+    public void compressDownload(HttpServletResponse response, HttpSession httpSession) throws IOException{
+        List<File> tag = (List<File>)httpSession.getAttribute("downloadOption");
+        List<String> paths = (List<String>)httpSession.getAttribute("downloadTagPath");
+        if (tag == null || paths == null) return;
+        httpSession.removeAttribute("downloadOption");
+        httpSession.removeAttribute("downloadTagPath");
+        response.setContentType("application/octet-stream");
+        response.addHeader("Content-Disposition", "attachment;fileName=working.zip");
+        try {
+            ZipUtils.toZip(tag, paths, response.getOutputStream(), true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @PostMapping(value = "/find")
+    public CommonResultForm multiFileFind(@RequestBody ArrayList<String> findfiles,HttpServletRequest request, HttpSession httpSession) throws IOException{
+        String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
+        if (findfiles == null) return CommonResultForm.of400("find fail");
+        List<String> res = new ArrayList<>();
+        for(String uri : findfiles){
+            File tag = new File(env.getProperty("filesys.dir") + userHomeDir + uri);
+            if (tag.exists()) res.add(uri+".log -find success");
+            else res.add(uri+".log -find fail");
+        }
+        return CommonResultForm.of200("find fail", res);
     }
     @PostMapping("/uploadsinglefile")
     public CommonResultForm singleFileUpload(MultipartFile file, HttpServletRequest request, HttpSession httpSession) throws IOException {
@@ -185,4 +238,5 @@ public class FileController {
             return CommonResultForm.of400(e.getMessage());
         }
     }
+
 }

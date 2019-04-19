@@ -6,7 +6,9 @@ import com.brainsci.websocket.server.WebSocketServer;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,7 +26,7 @@ public class MatlabUtils {
                 "-nodesktop",
                 "-nosplash",
                 "-logfile "+path.getAbsolutePath()+"/matlab.log",
-                "-r", "try " + mcmd + "exit;catch ErrorInfo; disp('An Exception Occurred');disp(ErrorInfo);exit; end"};
+                "-r", "try " + mcmd + "exit;catch ErrorInfo; disp('An Exception Occurred');disp(ErrorInfo);rmdir('"+path.getAbsolutePath()+"','s');exit; end"};
         try{
             Process p = Runtime.getRuntime().exec(cmd);
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -36,13 +38,13 @@ public class MatlabUtils {
             }
             br.close();
             p.destroy();
-//            File f = new File();
-//            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//            line = br.readLine();
-//            while(line != null){
-//                WebSocketServer.sendMessage(GsonPlus.GSON.toJson(new WebSocketMessageForm("gretna", line)),token);
-//                line = br.readLine();
-//            }
+            if (path.exists()){
+                String timestamp = String.valueOf(new Date().getTime()/1000);  // 精确到秒
+                File zipTag = new File(path.getPath()+"_"+timestamp+".zip");
+                System.out.println("compress...");
+                FileOutputStream fos = new FileOutputStream(zipTag);
+                ZipUtils.toZip(path.getAbsolutePath(), fos, true);
+            }
         }catch (Exception e){
             e.printStackTrace();
         }

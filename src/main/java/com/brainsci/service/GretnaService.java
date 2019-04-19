@@ -3,7 +3,9 @@ package com.brainsci.service;
 import com.brainsci.form.CommonResultForm;
 import com.brainsci.form.NetAnalysisOption;
 import com.brainsci.security.util.GsonPlus;
+import com.brainsci.utils.FileHandleUtils;
 import com.brainsci.utils.MatlabUtils;
+import com.brainsci.utils.ZipUtils;
 import com.brainsci.websocket.form.WebSocketMessageForm;
 import com.brainsci.websocket.server.WebSocketServer;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +13,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -22,32 +26,12 @@ public class GretnaService {
         this.filedir = filedir;
         MatlabUtils.matlabApplication = new File(matlabPath);
     }
-    private void deleteFold(File dirFile) {
-        // 如果dir对应的文件不存在，则退出
-        if (!dirFile.exists()) {
-            return;
-        }
-        Stack<File> stack = new Stack<>();
-        stack.push(dirFile);
-        while (!stack.isEmpty()){
-            dirFile = stack.pop();
-            if (dirFile.isFile()) {
-                dirFile.delete();
-            } else if (!dirFile.delete()){
-                stack.push(dirFile);
-                for (File file : dirFile.listFiles()) {
-                    stack.push(file);
-                }
-            }
-        }
-        dirFile.delete();
-    }
     @Async
-    public void networkAnalysis(String userHomeDir, String token, NetAnalysisOption para){
+    public void networkAnalysis(String userHomeDir, String task, String token, NetAnalysisOption para){
         MatlabUtils.state.put(userHomeDir, "running");
         WebSocketServer.sendMessage(GsonPlus.GSON.toJson(new WebSocketMessageForm("gretnaState", "running")),token);
-        File path = new File(filedir + userHomeDir + "/netAnalysis/result");
-        if (path.exists())deleteFold(path);// 判断文件夹是否存在，如果存在就删除
+        File path = new File(filedir + userHomeDir + "/netAnalysis/"+task+"/result");
+        if (path.exists())FileHandleUtils.deleteFold(path);// 判断文件夹是否存在，如果存在就删除
         path.mkdirs();
         int SType = para.getSignType();
         int TType = para.getThresMethod();
@@ -66,7 +50,7 @@ public class GretnaService {
                 "Para.RandNum={" + para.getRandNetworkNum() + "};" +
                 "Para.NetSign={" + SType + "};" +
                 "Para.ThresType={" + TType + "};" +
-                "Para.Thres=num2cell(" + Thres + ");" +
+                "Para.Thres={" + Thres + "};" +
                 "Para.NetType={" + NType + "};" +
                 "Para.ClustAlgor={" + para.getClustAlgor() + "};" +
                 "Para.ModulAlgor={" + para.getModulAlgor() + "};" +

@@ -56,21 +56,13 @@ public class ZipUtils {
          * @param out           压缩文件输出流
          * @throws RuntimeException 压缩失败会抛出运行时异常
          */
-    public static void toZip(List<File> srcFiles , OutputStream out)throws RuntimeException {
+    public static void toZip(List<File> srcFiles, List<String> paths, OutputStream out, boolean KeepDirStructure)throws RuntimeException {
         long start = System.currentTimeMillis();
         ZipOutputStream zos = null ;
         try {
             zos = new ZipOutputStream(out);
-            for (File srcFile : srcFiles) {
-                byte[] buf = new byte[BUFFER_SIZE];
-                zos.putNextEntry(new ZipEntry(srcFile.getName()));
-                int len;
-                FileInputStream in = new FileInputStream(srcFile);
-                while ((len = in.read(buf)) != -1){
-                    zos.write(buf, 0, len);
-                }
-                zos.closeEntry();
-                in.close();
+            for (int i = 0;i < srcFiles.size();i++) {
+                compress(srcFiles.get(i), zos, paths.get(i), KeepDirStructure);
             }
             long end = System.currentTimeMillis();
             System.out.println("压缩完成，耗时：" + (end - start) +" ms");
@@ -97,7 +89,7 @@ public class ZipUtils {
          *                          false:所有文件跑到压缩包根目录下(注意：不保留目录结构可能会出现同名文件,会压缩失败)
          * @throws Exception
          */
-    private static void compress(File sourceFile, ZipOutputStream zos, String name,
+    public static void compress(File sourceFile, ZipOutputStream zos, String name,
                                  boolean KeepDirStructure) throws Exception{
         byte[] buf = new byte[BUFFER_SIZE];
         if(sourceFile.isFile()){
@@ -139,16 +131,16 @@ public class ZipUtils {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        /** 测试压缩方法1  */
-        FileOutputStream fos1 = new FileOutputStream(new File("c:/mytest01.zip"));
-        ZipUtils.toZip("D:/log", fos1,true);
-
-        /** 测试压缩方法2  */
-        List<File> fileList = new ArrayList<>();
-        fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/jar.exe"));
-        fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/java.exe"));
-        FileOutputStream fos2 = new FileOutputStream(new File("c:/mytest02.zip"));
-        ZipUtils.toZip(fileList, fos2);
-    }
+//    public static void main(String[] args) throws Exception {
+//        /** 测试压缩方法1  */
+//        FileOutputStream fos1 = new FileOutputStream(new File("c:/mytest01.zip"));
+//        ZipUtils.toZip("D:/log", fos1,true);
+//
+//        /** 测试压缩方法2  */
+//        List<File> fileList = new ArrayList<>();
+//        fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/jar.exe"));
+//        fileList.add(new File("D:/Java/jdk1.7.0_45_64bit/bin/java.exe"));
+//        FileOutputStream fos2 = new FileOutputStream(new File("c:/mytest02.zip"));
+//        ZipUtils.toZip(fileList, fos2);
+//    }
 }

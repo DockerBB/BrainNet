@@ -1,4 +1,4 @@
-package com.brainsci.service;
+package com.brainsci.security.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 public class MailService {
     @Autowired
     private JavaMailSender mailSender;
-
     //邮件发件人
     @Value("${mail.fromMail.addr}")
     private String from;
@@ -23,7 +22,9 @@ public class MailService {
      */
     public void sendMail(String to, String subject, String verifyCode) {
         //创建邮件正文
-        String emailContent = "您的验证码为"+verifyCode;
+        String emailContent = "您的验证码为"+verifyCode+"\n" +
+                "验证码有效时间为30分钟，感谢您对本项目的支持\n" +
+                "若不是本人的操作，请忽视此邮件";
         //将模块引擎内容解析成html字符串
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
@@ -33,9 +34,10 @@ public class MailService {
         message.setText(emailContent);
         try {
             mailSender.send(message);
-            //logger.info("简单邮件已经发送。");
+            System.out.println("简单邮件已经发送。");
         } catch (Exception e) {
-            //logger.error("发送简单邮件时发生异常！", e);
+            System.out.println("发送简单邮件时发生异常！");
+            e.printStackTrace();
         }
     }
 }

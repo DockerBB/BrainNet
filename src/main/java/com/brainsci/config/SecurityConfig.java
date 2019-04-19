@@ -33,6 +33,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 "/login",
                 "/signup",
                 "/verify",
+                "/verifyMail",
                 "/error",
                 "/bsci/**", // 允许vue.js生成的静态网页
 //                "/socketServer/**", // websocket服务

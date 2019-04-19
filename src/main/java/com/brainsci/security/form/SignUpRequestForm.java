@@ -10,6 +10,7 @@ public class SignUpRequestForm extends BaseAuthForm {
     private String avatar;
     private String eMail;
     private String institution;
+    private String verifyCode;
     private String phone;
     private String qq;
 }

@@ -1,6 +1,5 @@
 package com.brainsci.utils;
 
-import com.brainsci.form.Para;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

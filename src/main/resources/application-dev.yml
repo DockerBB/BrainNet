@@ -15,6 +15,12 @@ spring:
   session:
     store-type: none
     timeout: 72h
+  mail:
+    host: smtp.csu.edu.cn  	#邮箱服务器地址
+    username: aknifejackzhmolong   #邮箱账号
+    password: 187dezhu			#邮箱密码
+    default-encoding: utf-8	#默认编码
+
 #修改端口不用添加依赖
 server:
   port: 8001
@@ -23,3 +29,8 @@ filesys:
   dir: ../dist/
   path-matlab: D:/Program Files/MATLAB/R2016b/bin/matlab.exe
   path-python3: D:/Python37/python.exe
+
+#邮件发件人
+mail:
+  fromMail:
+    addr: aknifejackzhmolong@csu.edu.cn

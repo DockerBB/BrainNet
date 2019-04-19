@@ -38,16 +38,16 @@ public class BrainNetController {
     }
 
     @ApiOperation(value = "网络分析")
-    @PostMapping(value = "/gretna/{token}")
-    public CommonResultForm gretnaNetworkAnalysis(@RequestBody NetAnalysisOption para, @PathVariable("token") String token, HttpServletRequest request, HttpSession httpSession){
+    @PostMapping(value = "/gretna/{task}/{token}")
+    public CommonResultForm gretnaNetworkAnalysis(@PathVariable("task") String task,@RequestBody NetAnalysisOption para, @PathVariable("token") String token, HttpServletRequest request, HttpSession httpSession){
         String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
         if (MatlabUtils.state.containsKey(userHomeDir)) return CommonResultForm.of204("Tasks are "+MatlabUtils.state.get(userHomeDir)+", please wait");
         MatlabUtils.state.put(userHomeDir, "submitted");
         WebSocketServer.sendMessage(GsonPlus.GSON.toJson(new WebSocketMessageForm("gretnaState", "submitted")),token);
-        gretnaService.networkAnalysis(userHomeDir,token, para);
+        gretnaService.networkAnalysis(userHomeDir,task, token, para);
         return CommonResultForm.of204("Tasks are queuing");
     }
-    @ApiOperation(value = "网络分析")
+    @ApiOperation(value = "预处理")
     @PostMapping(value = "/cpac/{task}/{token}")
     public CommonResultForm cpac(@PathVariable("task") String task,@PathVariable("token") String token,@RequestBody Map<String, String> map, HttpServletRequest request, HttpSession httpSession) throws Exception{
         String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();

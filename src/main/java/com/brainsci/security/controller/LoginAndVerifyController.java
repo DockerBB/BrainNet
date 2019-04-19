@@ -9,25 +9,27 @@ import com.brainsci.security.form.SignUpRequestForm;
 import com.brainsci.security.form.VerficationDataForm;
 import com.brainsci.security.repository.UserBaseRepository;
 import com.brainsci.security.service.LoginService;
+import com.brainsci.security.service.MailService;
 import com.brainsci.security.util.Image2Base64;
 import com.brainsci.security.util.LoginVerificationCode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.awt.*;
 import java.io.IOException;
+import java.net.URLDecoder;
 
 @RestController
 public class LoginAndVerifyController {
 
     private final LoginService loginService;
+    private final MailService mailService;
 
     @Autowired
-    public LoginAndVerifyController(LoginService loginService) {
+    public LoginAndVerifyController(LoginService loginService, MailService mailService) {
         this.loginService = loginService;
+        this.mailService = mailService;
     }
 
     @PostMapping(value = "/live")
@@ -50,6 +52,16 @@ public class LoginAndVerifyController {
         httpSession.setAttribute("verAnswer", createVer.getResult());
         VerficationDataForm verficationDataForm = new VerficationDataForm(imageCode);
         return new CommonResultForm(0, "已生成验证码", verficationDataForm);
+    }
+    /**
+     * 获取验证码，答案放入session内。
+     */
+    @GetMapping(value = "/verifyMail")
+    public CommonResultForm sendVerMail(@RequestParam String email, HttpSession httpSession) throws IOException, FontFormatException {
+        String random = ((int)((Math.random()*9+1)*100000))+"";
+        httpSession.setAttribute("verifyCode", random+URLDecoder.decode(email, "UTF-8"));
+        mailService.sendMail(URLDecoder.decode(email, "UTF-8"), "Brain Sci Tools", random);
+        return CommonResultForm.of204("已生成验证码");
     }
 
     /**
@@ -79,7 +91,9 @@ public class LoginAndVerifyController {
             return CommonResultForm.of400("请注销后尝试注册");
         }
         try {
-            return CommonResultForm.of200("注册成功", loginService.signUpFromWeb(requestForm, httpSession));
+            String verifyCode = (String) httpSession.getAttribute("verifyCode");
+            if (verifyCode != null&&verifyCode.equals(requestForm.getVerifyCode()+requestForm.getEMail())) return CommonResultForm.of200("注册成功", loginService.signUpFromWeb(requestForm, httpSession));
+            else return CommonResultForm.of400("注册失败，验证码不正确");
         } catch (SignUpException e) {
             return CommonResultForm.of400(e.getMessage());
         }

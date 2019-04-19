@@ -38,6 +38,26 @@ public class FileHandleUtils {
         }
         return fileViewer;
     }
+    public static void deleteFold(File dirFile) {
+        // 如果dir对应的文件不存在，则退出
+        if (!dirFile.exists()) {
+            return;
+        }
+        Stack<File> stack = new Stack<>();
+        stack.push(dirFile);
+        while (!stack.isEmpty()){
+            dirFile = stack.pop();
+            if (dirFile.isFile()) {
+                dirFile.delete();
+            } else if (!dirFile.delete()){
+                stack.push(dirFile);
+                for (File file : dirFile.listFiles()) {
+                    stack.push(file);
+                }
+            }
+        }
+        dirFile.delete();
+    }
 //    public List<Object> getFiles(String fileDir){
 //        List<Object> fileViewer = new ArrayList<>();
 //        Stack<Object> stack = new Stack<>();
