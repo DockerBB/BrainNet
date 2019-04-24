@@ -1,5 +1,6 @@
 package com.brainsci.websocket.server;
 
+import com.brainsci.security.util.GsonPlus;
 import com.brainsci.websocket.form.WebSocketMessageForm;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class WebSocketServer {
      */
     @OnMessage
     public void onMessage(String message){
-        sendMessage(sessionIds.get(session.getId())+"<--"+message,"niezhiliang9595");
+        sendMessage(GsonPlus.GSON.toJson(new WebSocketMessageForm("heartbeat", "1")),sessionIds.get(session.getId()));
         System.out.println("发送人:"+sessionIds.get(session.getId())+"内容:"+message);
     }
 

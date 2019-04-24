@@ -4,10 +4,9 @@ import com.brainsci.form.CommonResultForm;
 import com.brainsci.form.NetAnalysisOption;
 import com.brainsci.security.repository.UserBaseRepository;
 import com.brainsci.security.util.GsonPlus;
-import com.brainsci.service.CPACService;
+import com.brainsci.service.MRIService;
 import com.brainsci.service.GretnaService;
 import com.brainsci.utils.MatlabUtils;
-import com.brainsci.utils.RemoteAddrUtils;
 import com.brainsci.websocket.form.WebSocketMessageForm;
 import com.brainsci.websocket.server.WebSocketServer;
 import io.swagger.annotations.ApiOperation;
@@ -17,23 +16,20 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.websocket.server.PathParam;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Map;
 
 @RestController
 public class BrainNetController {
 
     private final GretnaService gretnaService;
-    private final CPACService cpacService;
+    private final MRIService MRIService;
     private final UserBaseRepository userBaseRepository;
 
     @Autowired
-    public BrainNetController(GretnaService gretnaService, CPACService cpacService, UserBaseRepository userBaseRepository) {
+    public BrainNetController(GretnaService gretnaService, MRIService MRIService, UserBaseRepository userBaseRepository) {
         this.gretnaService = gretnaService;
-        this.cpacService = cpacService;
+        this.MRIService = MRIService;
         this.userBaseRepository = userBaseRepository;
     }
 
@@ -47,13 +43,22 @@ public class BrainNetController {
         gretnaService.networkAnalysis(userHomeDir,task, token, para);
         return CommonResultForm.of204("Tasks are queuing");
     }
-    @ApiOperation(value = "预处理")
-    @PostMapping(value = "/cpac/{task}/{token}")
+    @ApiOperation(value = "预处理(fMRI)")
+    @PostMapping(value = "/fmri/{task}/{token}")
     public CommonResultForm cpac(@PathVariable("task") String task,@PathVariable("token") String token,@RequestBody Map<String, String> map, HttpServletRequest request, HttpSession httpSession) throws Exception{
         String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
         String str = map.get("jsonstr");
         WebSocketServer.sendMessage(GsonPlus.GSON.toJson(new WebSocketMessageForm("cpacState", "submitted")),token);
-        cpacService.cpac(userHomeDir, task, token, str);
+        MRIService.cpac(userHomeDir, task, token, str);
+        return CommonResultForm.of204("success");
+    }
+    @ApiOperation(value = "预处理(sMRI)")
+    @PostMapping(value = "/smri/{task}/{token}")
+    public CommonResultForm sMRI(@PathVariable("task") String task,@PathVariable("token") String token,@RequestBody Map<String, String> map, HttpServletRequest request, HttpSession httpSession) throws Exception{
+        String userHomeDir = userBaseRepository.getOne((String) httpSession.getAttribute("username")).getHomeDirectory();
+        String str = map.get("jsonstr");
+        WebSocketServer.sendMessage(GsonPlus.GSON.toJson(new WebSocketMessageForm("cpacState", "submitted")),token);
+        MRIService.sMRI(userHomeDir, task, token, str);
         return CommonResultForm.of204("success");
     }
     @ApiOperation(value = "网络模块状态")
